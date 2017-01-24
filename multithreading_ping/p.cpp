@@ -4,8 +4,8 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include "thread.h"
 #define MAXLINE 1024
-#define INTERVAL 5000 // millisecond
 #define MAX_LINE 5  // ping up to 5 lines to generate result 
 
 
@@ -46,8 +46,8 @@ std::string ping(const std::string ip_addr)
 
 double get_avg(const std::string line)
 {
-		std::cout << line << std::endl;
-		if (line.find("0 received") != std::string::npos || line.find("unknown host") != std::string::npos)
+		// std::cout << line << std::endl;
+		if (line.find("min/avg/max/mdev") == std::string::npos) // fail to find correct ping result
 				return -1;
 		// find '='
 		std::size_t pos = line.find_first_of("=");
@@ -62,8 +62,9 @@ double get_avg(const std::string line)
 
 
 
-int main()
+int main(int argc, char **argv)
 {
+		/*
 		std::string ip_addr;
 		std::string line;
 		if (!pre_check_sys())
@@ -71,6 +72,30 @@ int main()
 		std::cin >> ip_addr;
 		line = ping(ip_addr);
 		std::cout << get_avg(line) << std::endl;
+		*/
+		if (argc != 2)
+		{
+				std::cerr << "Usage: program_name filename" << std::endl;
+				exit(EXIT_FAILURE);
+		}
+
+		std::ifstream fin(argv[1]);
+		if (!fin.good())
+		{
+				std::cerr << "Unable to open the file: " << argv[1] << std::endl;
+				exit(EXIT_FAILURE);
+		}
+
+		if (!pre_check_sys())
+		{
+				std::cerr << "Can't use sys command" << std::endl;
+				exit(EXIT_FAILURE);
+		}
+
+		std::vector<process_struct> results = main_func(fin);
+		for (const auto &item : results)
+				std::cout << item.ip_addr << ": avg is " << item.avg_val << std::endl;
+
 		return 0;
 }
 
