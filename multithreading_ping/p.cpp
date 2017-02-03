@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <algorithm>
 #include "thread.h"
 #define MAXLINE 1024
 #define MAX_LINE 5  // ping up to 5 lines to generate result 
@@ -31,7 +32,7 @@ std::string ping(const std::string ip_addr)
 		FILE *fpin;
 		std::vector<std::string> vec_lines;
 		std::string command = "ping -c " + std::to_string(MAX_LINE) + " " + ip_addr + " 2>&1";  // static cast
-		std::cout << "Executing command " << command << "\r\n";
+		// std::cout << "Executing command " << command << "\r\n";
 		if ((fpin = popen(command.c_str(), "r")) == NULL)
 		{
 				std::cerr << "Popen error, command: " << command << std::endl;
@@ -64,15 +65,6 @@ double get_avg(const std::string line)
 
 int main(int argc, char **argv)
 {
-		/*
-		std::string ip_addr;
-		std::string line;
-		if (!pre_check_sys())
-				exit (EXIT_FAILURE);
-		std::cin >> ip_addr;
-		line = ping(ip_addr);
-		std::cout << get_avg(line) << std::endl;
-		*/
 		if (argc != 2)
 		{
 				std::cerr << "Usage: program_name filename" << std::endl;
@@ -91,11 +83,28 @@ int main(int argc, char **argv)
 				std::cerr << "Can't use sys command" << std::endl;
 				exit(EXIT_FAILURE);
 		}
-
+		std::cout << "Executing, please wait..." << std::endl;
 		std::vector<process_struct> results = main_func(fin);
-		for (const auto &item : results)
-				std::cout << item.ip_addr << ": avg is " << item.avg_val << std::endl;
-
+		if (!results.size())
+		{
+NO_VALID:
+				std::cout << "No valid ip address!!!" << std::endl;
+				exit(EXIT_FAILURE);
+		}
+		std::sort(results.begin(), results.end(), 
+						[] (const process_struct &a, const process_struct &b) { return a.avg_val < b.avg_val; });
+		auto good_item = std::find_if_not(results.begin(), results.end(), [] (const process_struct &a) { return a.avg_val <= 0; });
+		if (good_item == results.end())
+				goto NO_VALID;
+		std::cout << "\r\nSuccess ip address:" << std::endl;
+		std::for_each(good_item, results.end(), 
+						[] (const process_struct &a) { printf("ip address: %-15s, average time: %-6.2f\r\n", a.ip_addr.c_str(), a.avg_val); });
+		if (good_item != results.begin())
+		{
+				std::cout << "\r\nFailure ip address: " << std::endl;
+				std::for_each(results.begin(), good_item,
+								[] (const process_struct &a) { std::cout << "ip address: " << a.ip_addr << std::endl;});
+		}
 		return 0;
 }
 
