@@ -15,20 +15,50 @@ struct process_struct
 		process_struct(std::string str, double dval = 0.0): ip_addr(str), avg_val(dval) {}
 };
 
-void *get_avg_for_ip_addr(void *ip_val_obj)
-{
-		process_struct *ip_val_ptr = static_cast<process_struct *>(ip_val_obj);
-		std::string line = ping(ip_val_ptr->ip_addr);
-		ip_val_ptr->avg_val = get_avg(line);
-		pthread_exit(ip_val_obj);
-}
 
 #ifdef _WIN32
 	#include <Windows.h>
+	DWORD WINAPI get_avg_for_ip_addr(LPVOID lpParameter)
+	{
+			process_struct *ip_val_ptr = static_cast<process_struct *>(lpParameter);
+			std::string line = ping(ip_val_ptr->ip_addr);
+			ip_val_ptr->avg_val = get_avg(line);
+			return 0;
+	}
+	std::vector<process_struct> main_func(std::ifstream &fin)
+	{
+			std::vector<HANDLE> vec_threads;
+			std::vector<process_struct> vec_process_struct;
+			std::string ip_addr;
+			while (fin >> ip_addr)
+			{
+					process_struct new_val(ip_addr);
+					HANDLE thread;
+					vec_process_struct.push_back(ip_addr);
+					vec_threads.push_back(thread);
+			}
+			for (std::vector<std::string>::size_type index = 0; index < vec_process_struct.size(); ++index)
+			{
+					vec_threads[index] = CreateThread(NULL, 0, get_avg_for_ip_addr, &vec_process_struct[index], 0, 0);
+			}
+			for (const auto &thread : vec_threads)
+			{
+					WaitForSingleObject(thread, INFINITE);
+			}
+	}
+
+
 	
 
 #else
 	#include <pthread.h>
+	void *get_avg_for_ip_addr(void *ip_val_obj)
+	{
+			process_struct *ip_val_ptr = static_cast<process_struct *>(ip_val_obj);
+			std::string line = ping(ip_val_ptr->ip_addr);
+			ip_val_ptr->avg_val = get_avg(line);
+			pthread_exit(ip_val_obj);
+	}
 	std::vector<process_struct> main_func(std::ifstream &fin)
 	{
 			std::vector<pthread_t> vec_threads;
