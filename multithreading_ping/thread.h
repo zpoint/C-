@@ -9,9 +9,10 @@ double get_avg(std::string);
 
 void pause()
 {
-	int buffer;
+	std::string buffer;
 	printf("\r\nPress Enter key to continue...");
-	std::cin >> buffer;
+	std::getline(std::cin, buffer);
+	std::getline(std::cin, buffer);
 }
 
 struct process_struct
