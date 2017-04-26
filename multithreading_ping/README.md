@@ -2,7 +2,7 @@
 
 #### Compile
 
-        g++ -std=C++11 -pthread p.cpp -o mping
+        g++ -std=c++11 -pthread p.cpp -o mping
 
 or Visual Studio
 
@@ -12,7 +12,8 @@ or Visual Studio
 
 or double click **mping**
 
-####Results
+#### Results
+
 		Checking if processor is available...
 		Ok
 		Executing, please wait...
