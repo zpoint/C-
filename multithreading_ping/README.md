@@ -1,11 +1,13 @@
-###Cross platform Multithreading Ping
+### Cross platform Multithreading Ping
 
-####Compile
-		g++ -std=C++11 -pthread p.cpp -o mping
+#### Compile
+
+        g++ -std=C++11 -pthread p.cpp -o mping
 
 or Visual Studio
 
 ### Usage
+
 		mping ip_address.txt
 
 or double click **mping**
