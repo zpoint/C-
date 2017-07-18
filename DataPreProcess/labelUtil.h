@@ -8,16 +8,17 @@
 #include <random>
 #include <utility>
 #include <cstdlib>
+#include <chrono>
 
 unsigned label_total;
 auto engine = std::default_random_engine{};
 
 template <typename T>
-void random_vector(T &vec, unsigned group_size = 0)
+void randomIngroupVector(T &vec, unsigned group_size)
 {
 		if (group_size == 0)
-			std::shuffle(vec.begin(), vec.end(), engine);
-		else
+			return;
+		else if (group_size > 1)
 		{
 				typename T::iterator iter_begin = vec.begin();
 				while (iter_begin + group_size <= vec.end())
@@ -27,6 +28,46 @@ void random_vector(T &vec, unsigned group_size = 0)
 				}
 				std::shuffle(iter_begin, vec.end(), engine);
 		}
+		else
+				std::cerr << "Warning: randomIngroupVector group_size less equal than 1 bu not equal to 0, group_size: " << group_size << std::endl;
+}
+
+template <typename T>
+void randomOutgropVector(T &vec, unsigned group_size)
+{
+		if (group_size == 0)
+				return;
+		else if (group_size > 1)
+		{
+				T vec_temp(vec.size());
+				int index = 0;
+				unsigned iner_counter = 0;
+				std::vector<unsigned> index_vec(vec.size() / group_size + 1);
+				typename T::iterator iter_begin = vec.begin(), iter_end = vec.end(), tmp_iter_begin, tmp_iter_end;
+				for (auto &val : index_vec)
+				{
+						val = index;
+						index += group_size;
+				}
+				std::shuffle(index_vec.begin(), index_vec.end(), engine);
+				for (const auto &index_val : index_vec)
+				{
+						tmp_iter_begin = iter_begin + index_val;
+						tmp_iter_end = tmp_iter_begin + group_size;
+						if (tmp_iter_end > iter_end)
+								tmp_iter_end = iter_end;
+
+						while (tmp_iter_begin < tmp_iter_end)
+						{
+								vec_temp[iner_counter] = std::move(*tmp_iter_begin);
+								iner_counter += 1;
+								tmp_iter_begin += 1;
+						}
+				}
+				vec = std::move(vec_temp);
+		}
+		else
+				std::cerr << "Warning: randomOutgropVector group_size less equal than 1 but not equal to 0, group_size: " << group_size << std::endl;
 }
 
 void SortVecLength(std::vector<std::pair<std::string, unsigned>> &svec)
@@ -48,9 +89,11 @@ void pr_label(std::map<std::string, std::vector<std::pair<std::string, unsigned>
 		std::cout << "total: " << total << "\n" << std::endl;
 }
 
-void write_out(std::vector<std::string> &out_files, std::map<std::string, std::vector<std::pair<std::string, unsigned>>> &label_map, float rate, bool random_flag, bool sort_by_length, unsigned group_size)
+void write_out(std::vector<std::string> &out_files, std::map<std::string, std::vector<std::pair<std::string, unsigned>>> &label_map, float rate, 
+				bool sort_by_length, unsigned group_size, bool ingroup_sort, bool outgroup_sort)
 {
-	   pr_label(label_map);	
+		engine.seed(std::chrono::system_clock::now().time_since_epoch().count());
+	   	pr_label(label_map);	
 		std::ofstream f_out_first(out_files[0]), f_out_second(out_files[1]);
 		std::vector<std::pair<std::string, unsigned>> vec_first, vec_second;
 		for (auto &pair : label_map)
@@ -66,17 +109,23 @@ void write_out(std::vector<std::string> &out_files, std::map<std::string, std::v
 				}
 				label_map[label] = std::vector<std::pair<std::string, unsigned>>(); // clear mapped value, since use std::move already
 		}
-		
+		// std::cout << "sort_by_length: " << sort_by_length << " ingroup_sort: " << ingroup_sort << " outgroup_sort: " << outgroup_sort << std::endl;		
 		if (sort_by_length)
 		{
 				SortVecLength(vec_first);
 				SortVecLength(vec_second);
 		}
 
-		if (random_flag)
+		if (ingroup_sort)
 		{
-				random_vector(vec_first, group_size);
-				random_vector(vec_second, group_size);
+				randomIngroupVector(vec_first, group_size);
+				randomIngroupVector(vec_second, group_size);
+		}
+
+		if (outgroup_sort)
+		{
+				randomOutgropVector(vec_first, group_size);
+				randomOutgropVector(vec_second, group_size);
 		}
 
 		for (const auto & pair : vec_first)
@@ -114,8 +163,8 @@ void labelCount(std::ifstream &fin, std::ofstream &fout, unsigned min, unsigned 
 		fout << "Total " << label_total << std::endl;
 }
 
-void labelProcess(std::vector<std::string> &in_files, std::vector<std::string> &out_files, size_t min_count, size_t max_count, float rate, bool random_flag, 
-				bool label_flag, bool sort_by_length, unsigned group_size)
+void labelProcess(std::vector<std::string> &in_files, std::vector<std::string> &out_files, size_t min_count, size_t max_count, float rate, 
+				bool label_flag, bool sort_by_length, unsigned group_size, bool ingroup_sort, bool outgroup_sort)
 {
 		std::map<std::string, std::vector<std::pair<std::string, unsigned>>> label_map;
 		std::string line, label, word;
@@ -157,12 +206,11 @@ void labelProcess(std::vector<std::string> &in_files, std::vector<std::string> &
 								depreacted_other += 1;
 								continue;
 						}
-						
 						label_map[label].push_back(std::make_pair(label_flag ? label + " " + line : line, wordCount));
 				}
 		}
 
-		write_out(out_files, label_map, rate, random_flag, sort_by_length, group_size);
+		write_out(out_files, label_map, rate, sort_by_length, group_size, ingroup_sort, outgroup_sort);
 		std::cout << "\nDeprecated total line: " << (depreacted_less_than_min_count + depreacted_more_than_max_count) 
 				<< "\nDeprecated more than max line: " << depreacted_more_than_max_count << "\nDeprecated less than min line: " << depreacted_less_than_min_count 
 				<< "\nDeprecated other line: " << depreacted_other << std::endl;

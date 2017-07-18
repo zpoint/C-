@@ -14,28 +14,30 @@
 
 #### LabelProcess Usage
 
-    LabelProcess v1.0
+    LabelProcess v1.1
 
     Options:
-    Parameters for processing:
+    Parameters for processing: <bool> means you can only supply 0 or 1
         -in <file>
             Read data from pattern <file>, Can be specific file path or pattern, Pattern example: if <file> is '/root/date/news/::.txt', search all file contains .txt in /root/data/news/
         -out <file>
-            Use <file> to save the result
+            Use <file> to save the result, check the -rate parameter description
         -min-count <int>
             This will discard words that appear less than <int> times; default is 1
         -max-count <int>
             This will discard words that appear more than <int> times; If the value set to 0, means don't discard. default is 0
         -rate <float>
-            This will seperate your file into two part, if rate == 0.8, The 80% of data will be stored to <FILE>_0.8.txt, 20% of data will be stored to <FILE>_0.2.txt
-        -random <int>
-            random output, 1 true, 0 false, default 1
-        -label <int>
-            whether add label for each output line, 1 true, 0 false, default 1
-         -sort <int>
+            This will seperate your file into two part, if rate == 0.8, The 80% of data will be stored to <OUT_FILE>_0.8.txt, 20% of data will be stored to <OUT_FILE>_0.2.txt
+        -label <bool>
+            whether add label(each file name) in front of each output line, 1 true, 0 false, default 1
+         -word-sort <bool>
             whether sort by word count for each line, 1 true, 0 false, default 1
         -group-size <int>
-            if group-size set to 500, means random sort 0-500 lines, 500-1000 lines... until EOF, First sort by length, then sort by random with group size, set to 0 means regard all the file as a group. Default 0
+            if -group-size set to 500, means 0-500 lines are group1, 500-1000 lines are group2 ..., If -group-size set to 0, means all lines are in a single group
+        -ingroup-sort <bool>
+            whether random sort lines among a single group, default 0, if -word-sort flag set, sort by word count will be performed first
+        -outgroup-sort <bool>
+            whether random sort groups among all groups in a single file, default 0, if -word-sort flag set, sort by word count first, if -ingroup_sort set, ingroup_sort will be performed before -outgroup-sort
 
     Examples:
     ./LabelProcess -in '/root/data/news2/news_mixed.txt' -out '/root/data/news2/news_mixed' -min-count 1 -max-count 2000 --rate 0.8
