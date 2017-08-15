@@ -101,7 +101,7 @@ void write_out(std::vector<std::string> &out_files, std::map<std::string, std::v
 				std::string label = pair.first;
 				std::vector<std::pair<std::string, unsigned>> &svec = pair.second;
 				std::size_t mid_point = int(svec.size() * rate), index = -1;
-
+				std::shuffle(svec.begin(), svec.end(), engine);  // important
 				for (const auto &s_pair : svec)
 				{
 						index += 1;
