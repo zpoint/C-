@@ -11,7 +11,7 @@ int main(int argc, char **argv)
   if (argc == 1) {
 	std::cout << "LabelProcess v1.2\n\n" << "Options:\n" << "Parameters for processing: <bool> means you can only supply 0 or 1\n"
     << "\t-in <file>\n"
-    << "\t\tRead data from pattern <file>, Can be specific file path or pattern, Pattern example: if <file> is '/root/date/news/::.txt', search all file contains .txt in /root/data/news/\n"
+    << "\t\tRead data from pattern <file>, Can be specific file path or pattern, Pattern example: if <file> is '/root/data/news/::.txt', search all file contains .txt in /root/data/news/\n"
 	<< "\t-out <file>\n"
 	<< "\t\tUse <file> to save the result, check the -rate parameter description\n"
 	<< "\t-min-count <int>\n"
@@ -34,6 +34,8 @@ int main(int argc, char **argv)
 	<< "\t\t If provided, search all files in -in2\n"
 	<< "\t-inN <file>\n"
 	<< "\t\tcan be -in3, -in4 or ... -in10, same effort as -in2\n"
+	<< "\t -tf_idf <bool>\n"
+	<< "\t\twhether compute tf_idf, and store to -out, default 0"
 	<< "\nExamples:\n"
 	<< "./LabelProcess -in '/root/data/news2/news_mixed.txt' -out '/root/data/news2/news_mixed' -min-count 1 -max-count 2000 --rate 0.8\n"
 	<< "Will read news_mixed.txt line by line, discard line with words less than 1 or more than 2000, save other line two two part, "
@@ -44,7 +46,7 @@ int main(int argc, char **argv)
   int i;
   unsigned min_count = 1, max_count = 0, group_size = 0;
   float rate = 0;
-  bool random_flag = true, label_flag = true, sort_by_length = true, ingroup_sort = false, outgroup_sort = false;
+  bool random_flag = true, label_flag = true, sort_by_length = true, ingroup_sort = false, outgroup_sort = false, tf_idf=false;
   std::vector<std::string> input_files, output_files;
   if ((i = ArgPos("-rate", argc, argv)) > 0) rate = atof(argv[i + 1]);
   if ((i = ArgPos("-in", argc, argv)) > 0) check_input(argv[i + 1], input_files);
@@ -57,6 +59,7 @@ int main(int argc, char **argv)
   if ((i = ArgPos("-group-size", argc, argv, false)) > 0) group_size = unsigned(atoi(argv[i + 1]));
   if ((i = ArgPos("-ingroup-sort", argc, argv, false)) > 0) ingroup_sort = bool(atoi(argv[i + 1]));
   if ((i = ArgPos("-outgroup-sort", argc, argv, false)) > 0) outgroup_sort = bool(atoi(argv[i + 1]));
+  if ((i = ArgPos("-tf_idf", argc, argv, false)) > 0) tf_idf = bool(atoi(argv[i + 1]));
   for (int index = 2; index <= 10; ++index)
   {
 		  static std::ostringstream ostream;
@@ -71,6 +74,6 @@ int main(int argc, char **argv)
 		  else
 				  break;
   }
-  labelProcess(input_files, output_files, min_count, max_count, rate, label_flag, sort_by_length, group_size, ingroup_sort, outgroup_sort);
+  labelProcess(input_files, output_files, min_count, max_count, rate, label_flag, sort_by_length, group_size, ingroup_sort, outgroup_sort, tf_idf);
   return 0;
 }

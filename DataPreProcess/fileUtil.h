@@ -1,9 +1,11 @@
+#pragma once
 #include <string>
 #include <vector>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <iomanip>
+#include <tuple>
 
 #include <dirent.h>
 #include <sys/stat.h>  // Unix specific header
@@ -63,6 +65,19 @@ void check_input(std::string in_str, std::vector<std::string> &fvec)
 
 }
 
+bool check_output_file_state(const std::string &filename, bool exit_if_fail=true)
+{
+		std::ofstream os(filename);
+		if (!os.good())
+		{
+				std::cout << "Unable to open output file: " << filename << std::endl;
+				if (exit_if_fail)
+						exit(0);
+				return false;
+		}
+		return true;
+}
+
 void check_output(std::string out, float rate, std::vector<std::string> &output_files)
 {
 		std::ostringstream os1, os2;
@@ -73,18 +88,24 @@ void check_output(std::string out, float rate, std::vector<std::string> &output_
 		file1 = out + "_" + os1.str() + ".txt";
 		os2 << std::fixed << std::setprecision(2) << (1 - rate);
 		file2 = out + "_" + os2.str() + ".txt";
-		std::ofstream f1(file1), f2(file2);
-		if (!f1.good())
+		for (const auto & filename : std::vector<std::string>{file1, file2})
 		{
-				std::cout << "Unable to open output file: " << file1 << std::endl;
-				exit(0);
+				if (check_output_file_state(filename))
+						output_files.push_back(filename);
 		}
-		if (!f2.good())
-		{
-				std::cout << "Unable to open output file: " << file2 << std::endl;
-				exit(0);
-		}
+}
 
-		output_files.push_back(file1);
-		output_files.push_back(file2);
+void check_output_from_input_files(const std::vector<std::string> &input_files, std::vector<std::string> &output_files, const std::string &concate_str)
+{
+		std::string out_filename;
+		for (const std::string &in_filename : input_files)
+		{
+				std::size_t pos = in_filename.find_last_of(".");
+				if (pos != std::string::npos)
+						out_filename = in_filename.substr(0, pos) + "_" + concate_str + in_filename.substr(pos);
+				else
+						out_filename = in_filename + "_" + concate_str;
+				if (check_output_file_state(out_filename))
+						output_files.push_back(out_filename);
+		}
 }

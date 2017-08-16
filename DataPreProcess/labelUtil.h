@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -9,6 +10,9 @@
 #include <utility>
 #include <cstdlib>
 #include <chrono>
+
+#include "TF_IDF.h"
+#include "fileUtil.h"
 
 unsigned label_total;
 auto engine = std::default_random_engine{};
@@ -90,7 +94,7 @@ void pr_label(std::map<std::string, std::vector<std::pair<std::string, unsigned>
 }
 
 void write_out(std::vector<std::string> &out_files, std::map<std::string, std::vector<std::pair<std::string, unsigned>>> &label_map, float rate, 
-				bool sort_by_length, unsigned group_size, bool ingroup_sort, bool outgroup_sort)
+				bool sort_by_length, unsigned group_size, bool ingroup_sort, bool outgroup_sort, bool tf_idf)
 {
 		engine.seed(std::chrono::system_clock::now().time_since_epoch().count());
 	   	pr_label(label_map);	
@@ -133,7 +137,25 @@ void write_out(std::vector<std::string> &out_files, std::map<std::string, std::v
 		for (const auto & pair : vec_second)
 				f_out_second << pair.first << "\n";
 
-		std::cout << "\nWrite to: \n" << out_files[0] << " " << vec_first.size() << "\n" << out_files[1] << " " << vec_second.size() << std::endl; 
+		std::cout << "\nWrite to: \n" << out_files[0] << " " << vec_first.size() << "\n" << out_files[1] << " " << vec_second.size() << std::endl;
+		if (tf_idf)
+		{
+				std::size_t index = 0;
+				std::vector<std::vector<std::pair<std::string, unsigned>>> vecs;
+				vecs.push_back(std::move(vec_first));
+				vecs.push_back(std::move(vec_second));
+				std::vector<std::string> tf_out_files;
+
+				check_output_from_input_files(out_files, tf_out_files, "tf_idf");
+				tf_idf_from_vector(vecs, tf_out_files);
+				std::cout << "\nWrite to: \n";
+				for (const auto & filename : out_files)
+				{
+						std::cout << filename << " " << vecs[index].size() << "\n";
+						index += 1;
+				}
+				std::cout << std::endl;
+		}
 }
 
 void labelCount(std::ifstream &fin, std::ofstream &fout, unsigned min, unsigned max)
@@ -164,7 +186,7 @@ void labelCount(std::ifstream &fin, std::ofstream &fout, unsigned min, unsigned 
 }
 
 void labelProcess(std::vector<std::string> &in_files, std::vector<std::string> &out_files, size_t min_count, size_t max_count, float rate, 
-				bool label_flag, bool sort_by_length, unsigned group_size, bool ingroup_sort, bool outgroup_sort)
+				bool label_flag, bool sort_by_length, unsigned group_size, bool ingroup_sort, bool outgroup_sort, bool tf_idf)
 {
 		std::map<std::string, std::vector<std::pair<std::string, unsigned>>> label_map;
 		std::string line, label, word;
@@ -210,7 +232,7 @@ void labelProcess(std::vector<std::string> &in_files, std::vector<std::string> &
 				}
 		}
 
-		write_out(out_files, label_map, rate, sort_by_length, group_size, ingroup_sort, outgroup_sort);
+		write_out(out_files, label_map, rate, sort_by_length, group_size, ingroup_sort, outgroup_sort, tf_idf);
 		std::cout << "\nDeprecated total line: " << (depreacted_less_than_min_count + depreacted_more_than_max_count) 
 				<< "\nDeprecated more than max line: " << depreacted_more_than_max_count << "\nDeprecated less than min line: " << depreacted_less_than_min_count 
 				<< "\nDeprecated other line: " << depreacted_other << std::endl;
