@@ -67,6 +67,7 @@ int main(int argc, char **argv)
 
 		if ((i = ArgPos("-skip_first", argc, argv, false)) > 0) skip_first = bool(atoi(argv[i + 1]));
 		if ((i = ArgPos("-out", argc, argv, false)) > 0) output_dir = argv[i + 1];
+		if ((i = ArgPos("-intest", argc, argv, false)) > 0) test_input_files.push_back(argv[i + 1]);
 		
 		check_output_from_input_files(input_files, output_files, "tf_idf");
 		check_output_from_input_files(test_input_files, test_output_files, "tf_idf");
@@ -100,6 +101,9 @@ int main(int argc, char **argv)
 
 		std::cout << "Added input files\n";
 		for (const auto & filename : input_files)
+				std::cout << "\t" << filename << "\n";
+		std::cout << (test_input_files.size() > 0 ? "Added test input files\n" : "No test file added\n");
+		for (const auto & filename : test_input_files)
 				std::cout << "\t" << filename << "\n";
 
 		std::cout << "\nProcessing " << std::endl;
