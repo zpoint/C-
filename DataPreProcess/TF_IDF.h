@@ -20,6 +20,19 @@ inline std::string skip_first_word(std::string &line)
 		return (pos != std::string::npos) ? line.substr(pos + 1) : line;
 }
 
+void save_vocab(const std::string &output_file, map_t &freq_map, map_t &empty_vocab_map)
+{
+		std::size_t index = 0;
+		std::ofstream os(output_file);
+		for (const auto & item : freq_map)
+		{
+				os << item.first << " " << item.second << "\n";
+				empty_vocab_map[item.first] = index;
+				index += 1;
+		}
+}
+
+
 void scan_line(const std::string &line, map_t &freq_map)
 {
 		std::string word;
@@ -53,7 +66,7 @@ long scan_file_to_freq_map(const std::string &file_name, map_t &freq_map, bool s
 		return line_num;
 }
 
-void scan_tf_idf(map_t &freq_map, std::string &line, const double &total_count, std::ofstream &os)
+void scan_tf_idf(map_t &freq_map, std::string &line, const double &total_count, std::ofstream &os, map_t &vocab_map)
 {
 		double tf_idf;
 		map_t line_freq_map;
@@ -65,15 +78,16 @@ void scan_tf_idf(map_t &freq_map, std::string &line, const double &total_count, 
 		while (istring_bk >> word)
 		{
 				tf_idf = line_freq_map[word] * std::log10(total_count / freq_map[word]);
-				os << tf_idf << " ";
+				os << vocab_map[word] << ":" << tf_idf << " ";
 		}
 		os << std::endl;
 }
 
-void tf_idf_from_vector(std::vector<std::vector<std::pair<std::string, unsigned>>> &vecs, std::vector<std::string> &files_out)
+void tf_idf_from_vector(std::vector<std::vector<std::pair<std::string, unsigned>>> &vecs, std::vector<std::string> &files_out, const std::string vocab_out)
 {
-		map_t freq_map;
+		map_t freq_map, vocab_map;
 		double total_count = 0;
+		std::size_t index = 0;
 		for (const auto &vec : vecs)
 		{
 				// fill freq_map
@@ -82,25 +96,27 @@ void tf_idf_from_vector(std::vector<std::vector<std::pair<std::string, unsigned>
 				total_count += vec.size();
 		}
 
-		std::size_t index = 0;
+		save_vocab(vocab_out, freq_map, vocab_map);
 		for (auto &vec : vecs)
 		{
 				// compute tf_idf and save to output file
 				std::ofstream os(files_out[index]);
 				for (auto &line_pair : vec)
-						scan_tf_idf(freq_map, line_pair.first, total_count, os);
+						scan_tf_idf(freq_map, line_pair.first, total_count, os, vocab_map);
 				index += 1;
 		}
 }
 
-void tf_idf_from_files(const std::vector<std::string> &files_in, const std::vector<std::string> &files_out, bool skip_first=false)
+void tf_idf_from_files(const std::vector<std::string> &files_in, const std::vector<std::string> &files_out, const std::string vocab_out, bool skip_first=false)
 {
 		long line_num = 0;
-		map_t freq_map;
+		std::size_t index = 0;
+		map_t freq_map, vocab_map;
 
 		for (const auto & filename : files_in)
 				line_num += scan_file_to_freq_map(filename, freq_map, skip_first);
-		std::size_t index = 0;
+		
+		save_vocab(vocab_out, freq_map, vocab_map);
 		for (const auto & filename : files_in)
 		{
 				std::ofstream os(files_out[index]);
@@ -110,7 +126,7 @@ void tf_idf_from_files(const std::vector<std::string> &files_in, const std::vect
 				while (std::getline(in, line))
 				{
 						line = skip_first ? skip_first_word(line) : line;
-						scan_tf_idf(freq_map, line, line_num, os);
+						scan_tf_idf(freq_map, line, line_num, os, vocab_map);
 				}
 				index += 1;
 		}

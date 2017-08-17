@@ -95,14 +95,16 @@
 
     tf_idf v1.0
 
-    -in <file>
+        -in <file>
             Read data from pattern <file>, Can be specific file path or pattern, Pattern example: if <file> is '/root/data/news/::.txt', search all file contains .txt in /root/data/news/
          -skip_first <bool>
              Whether skip first word for each line, default 1
          -inN <file>
             can be -in2, in4 or ... -in10, you can supply another 10 input file or input file directory
+        -out <file>
+            Directory to save output, if not provide, save each result to each input file's directory
 
     Examples:
-    ./tf_idf -in '/root/data/news2/news_mixed_0.8.txt' -in2 '/root/data/news2/news_mixed_0.2.txt'
-    Will read news_mixed_0.8.txt and news_mixed_0.2.txt and compute tf_idf and store to /root/data/news2/news_mixed_0.8_tf_idf.txt and /root/data/news_mixed_0.2_tf_idf.txt
+    ./tf_idf -in '/root/data/news2/news_mixed_0.8.txt' -in2 '/root/data/news2/news_mixed_0.2.txt' -out ./
+    Will read news_mixed_0.8.txt and news_mixed_0.2.txt and compute tf_idf and store to ./news_mixed_0.8_tf_idf.txt and ./news_mixed_0.2_tf_idf.txt and ./vocab.txt
 

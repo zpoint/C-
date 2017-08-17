@@ -44,10 +44,13 @@ int main(int argc, char **argv)
   }
 
   int i;
+  std::size_t pos;
   unsigned min_count = 1, max_count = 0, group_size = 0;
   float rate = 0;
   bool random_flag = true, label_flag = true, sort_by_length = true, ingroup_sort = false, outgroup_sort = false, tf_idf=false;
   std::vector<std::string> input_files, output_files;
+  std::string vocab_out;
+
   if ((i = ArgPos("-rate", argc, argv)) > 0) rate = atof(argv[i + 1]);
   if ((i = ArgPos("-in", argc, argv)) > 0) check_input(argv[i + 1], input_files);
   if ((i = ArgPos("-out", argc, argv)) > 0) check_output(argv[i + 1], rate, output_files);
@@ -74,6 +77,13 @@ int main(int argc, char **argv)
 		  else
 				  break;
   }
-  labelProcess(input_files, output_files, min_count, max_count, rate, label_flag, sort_by_length, group_size, ingroup_sort, outgroup_sort, tf_idf);
+  // vocab_out
+  if ((pos = output_files[0].find_last_of("/")) != std::string::npos)
+		  vocab_out = output_files[0].substr(pos + 1) + "/vocab.txt";
+  else
+		  vocab_out = "vocab.txt";
+
+  std::cout << "Processing " << std::endl;
+  labelProcess(input_files, output_files, min_count, max_count, rate, label_flag, sort_by_length, group_size, ingroup_sort, outgroup_sort, tf_idf, vocab_out);
   return 0;
 }

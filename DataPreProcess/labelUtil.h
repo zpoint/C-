@@ -94,7 +94,7 @@ void pr_label(std::map<std::string, std::vector<std::pair<std::string, unsigned>
 }
 
 void write_out(std::vector<std::string> &out_files, std::map<std::string, std::vector<std::pair<std::string, unsigned>>> &label_map, float rate, 
-				bool sort_by_length, unsigned group_size, bool ingroup_sort, bool outgroup_sort, bool tf_idf)
+				bool sort_by_length, unsigned group_size, bool ingroup_sort, bool outgroup_sort, bool tf_idf, std::string vocab_out)
 {
 		engine.seed(std::chrono::system_clock::now().time_since_epoch().count());
 	   	pr_label(label_map);	
@@ -147,7 +147,7 @@ void write_out(std::vector<std::string> &out_files, std::map<std::string, std::v
 				std::vector<std::string> tf_out_files;
 
 				check_output_from_input_files(out_files, tf_out_files, "tf_idf");
-				tf_idf_from_vector(vecs, tf_out_files);
+				tf_idf_from_vector(vecs, tf_out_files, vocab_out);
 				std::cout << "\nWrite to: \n";
 				for (const auto & filename : out_files)
 				{
@@ -186,7 +186,7 @@ void labelCount(std::ifstream &fin, std::ofstream &fout, unsigned min, unsigned 
 }
 
 void labelProcess(std::vector<std::string> &in_files, std::vector<std::string> &out_files, size_t min_count, size_t max_count, float rate, 
-				bool label_flag, bool sort_by_length, unsigned group_size, bool ingroup_sort, bool outgroup_sort, bool tf_idf)
+				bool label_flag, bool sort_by_length, unsigned group_size, bool ingroup_sort, bool outgroup_sort, bool tf_idf, std::string vocab_out)
 {
 		std::map<std::string, std::vector<std::pair<std::string, unsigned>>> label_map;
 		std::string line, label, word;
@@ -232,7 +232,7 @@ void labelProcess(std::vector<std::string> &in_files, std::vector<std::string> &
 				}
 		}
 
-		write_out(out_files, label_map, rate, sort_by_length, group_size, ingroup_sort, outgroup_sort, tf_idf);
+		write_out(out_files, label_map, rate, sort_by_length, group_size, ingroup_sort, outgroup_sort, tf_idf, vocab_out);
 		std::cout << "\nDeprecated total line: " << (depreacted_less_than_min_count + depreacted_more_than_max_count) 
 				<< "\nDeprecated more than max line: " << depreacted_more_than_max_count << "\nDeprecated less than min line: " << depreacted_less_than_min_count 
 				<< "\nDeprecated other line: " << depreacted_other << std::endl;

@@ -10,6 +10,63 @@
 #include <dirent.h>
 #include <sys/stat.h>  // Unix specific header
 
+bool good_file(std::string &filename, bool exit_if_fail=true)
+{
+		std::ofstream os(filename);
+		if (!os.good())
+		{
+				std::cout << "Unable to open file: " << filename << std::endl;
+				if (exit_if_fail) exit(0);
+				return false;
+		}
+		return true;
+}
+
+std::vector<std::string> check_dir(std::string &dir, const std::vector<std::string> &out_files, bool exit_if_fail=true)
+{
+		struct stat s;
+		std::size_t pos;
+		std::vector<std::string> return_files;
+		
+		if (stat(dir.c_str(), &s) == 0)
+		{
+				// is a directory
+				if (dir[dir.size() - 1] != '/')
+						dir += "/";
+				for (std::string filename : out_files)
+				{
+						if ((pos = filename.find_last_of("/")) != std::string::npos)
+								filename = filename.substr(pos + 1);
+						filename = dir + filename;
+						
+						if (stat(filename.c_str(), &s) == 0)
+						{
+								std::ofstream os(filename);
+								if (os.good())
+										return_files.push_back(filename);
+								else
+								{
+										std::cout << "Unable to open output file: " << filename << std::endl;
+										if (exit_if_fail) exit(0);
+								}
+
+						}
+						else
+						{
+								std::cout << "Unknown sub file path: " << filename << std::endl;
+								if (exit_if_fail) exit(0);
+						}
+				}
+
+		}
+		else
+		{
+				std::cout << "Unknown output directory: " << dir << std::endl;
+				if (exit_if_fail) exit(0);
+		}
+		return return_files;
+}
+
 void check_input(std::string in_str, std::vector<std::string> &fvec)
 {
 		std::string match = "";
@@ -36,7 +93,7 @@ void check_input(std::string in_str, std::vector<std::string> &fvec)
 										if (match != "")
 												if (std::string(ent->d_name).find(match) == std::string::npos)
 														continue;
-										fvec.push_back(std::string(in_str) + ent->d_name);
+										fvec.push_back(in_str + ent->d_name);
 								}
 								closedir(dir);
 						}
