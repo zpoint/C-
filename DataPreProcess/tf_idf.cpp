@@ -22,6 +22,7 @@ int main(int argc, char **argv)
 						<< "./tf_idf -in '/root/data/news2/news_mixed_0.8.txt' -in2 '/root/data/news2/news_mixed_0.2.txt' -out ./ \n"
 						<< "Will read news_mixed_0.8.txt and news_mixed_0.2.txt and compute tf_idf and store to ./news_mixed_0.8_tf_idf.txt and "
 						<< "./news_mixed_0.2_tf_idf.txt and ./vocab.txt\n"
+						<< "Notice, number in vocab.txt is how many line contains the specific word\n"
 						<< std::endl;
 				return 0;
 		}
@@ -42,10 +43,7 @@ int main(int argc, char **argv)
 				ostream.clear();
 				ostream << "-in" << index;
 				if ((i = ArgPos(ostream.str().c_str(), argc, argv, false)) > 0)
-				{
 						check_input(argv[i + 1], input_files);
-						std::cout << "Scanning input file from: " << argv[i + 1] << std::endl;
-				}
 				else
 						break;
 		}
@@ -75,13 +73,18 @@ int main(int argc, char **argv)
 		{
 				// vocab_out
 				if ((pos = input_files[0].find_last_of("/")) != std::string::npos)
-						vocab_out = input_files[0].substr(pos + 1) + "/vocab.txt";
+						vocab_out = input_files[0].substr(0, pos) + "/vocab.txt";
 				else
 						vocab_out = "vocab.txt";
 		}
 
 		good_file(vocab_out); // check whether can open vocab out to write
 
-		std::cout << "Processing " << std::endl;
+		std::cout << "Added input files\n";
+		for (const auto & filename : input_files)
+				std::cout << "\t" << filename << "\n";
+
+		std::cout << "\nProcessing " << std::endl;
 		tf_idf_from_files(input_files, output_files, vocab_out, skip_first);
+		std::cout << "Done" << std::endl;
 }

@@ -39,7 +39,9 @@ int main(int argc, char **argv)
 	<< "\nExamples:\n"
 	<< "./LabelProcess -in '/root/data/news2/news_mixed.txt' -out '/root/data/news2/news_mixed' -min-count 1 -max-count 2000 --rate 0.8\n"
 	<< "Will read news_mixed.txt line by line, discard line with words less than 1 or more than 2000, save other line two two part, "
-	   "news_mixed_0.8.txt and news_mixed_0.2.txt\n" << std::endl;
+	   "news_mixed_0.8.txt and news_mixed_0.2.txt\n" 
+	<< "Notice, number in vocab.txt is how many line contains the specific word\n"
+	<< std::endl;
     return 0;
   }
 
@@ -70,20 +72,22 @@ int main(int argc, char **argv)
 		  ostream.clear();
 		  ostream << "-in" << index;
 		  if ((i = ArgPos(ostream.str().c_str(), argc, argv, false)) > 0)
-		  {
 				  check_input(argv[i + 1], input_files);
-				  std::cout << "Scanning input file from: " << argv[i + 1] << std::endl;
-		  }
 		  else
 				  break;
   }
   // vocab_out
   if ((pos = output_files[0].find_last_of("/")) != std::string::npos)
-		  vocab_out = output_files[0].substr(pos + 1) + "/vocab.txt";
+		  vocab_out = output_files[0].substr(0, pos) + "/vocab.txt";
   else
 		  vocab_out = "vocab.txt";
 
-  std::cout << "Processing " << std::endl;
+  std::cout << "Added input files\n";
+  for (const auto &filename : input_files)
+		  std::cout << "\t" << filename << "\n";
+
+  std::cout << "\nProcessing " << std::endl;
   labelProcess(input_files, output_files, min_count, max_count, rate, label_flag, sort_by_length, group_size, ingroup_sort, outgroup_sort, tf_idf, vocab_out);
+  std::cout << "Done" << std::endl;
   return 0;
 }
