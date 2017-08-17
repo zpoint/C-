@@ -6,8 +6,9 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-
 #include <cmath>
+
+#include "vectorUtil.h"
 
 typedef std::map<std::string, unsigned long> map_t;
 /*
@@ -21,10 +22,11 @@ inline std::string skip_first_word(std::string &line)
 		return (pos != std::string::npos) ? line.substr(pos + 1) : line;
 }
 
-void save_vocab(const std::string &output_file, map_t &freq_map, map_t &empty_vocab_map)
+void save_vocab(const std::string &output_file, map_t &freq_map, map_t &empty_vocab_map, const long total_line)
 {
 		std::size_t index = 0;
 		std::ofstream os(output_file);
+		os << total_line << "\n";
 		for (const auto & item : freq_map)
 		{
 				os << item.first << " " << item.second << "\n";
@@ -71,6 +73,8 @@ void scan_tf_idf(map_t &freq_map, std::string &line, const double &total_count, 
 {
 		double tf_idf;
 		double line_word_count = 0; // for double division
+		map_t::mapped_type total_word_count = 0;
+		map_t::iterator iter;
 		map_t line_freq_map;
 		std::string word;
 		std::istringstream istring(line), istring_bk(line);
@@ -82,13 +86,19 @@ void scan_tf_idf(map_t &freq_map, std::string &line, const double &total_count, 
 		}
 		while (istring_bk >> word)
 		{
-				tf_idf = (line_freq_map[word] / line_word_count) * std::log10(total_count / freq_map[word]);
+				if ((iter = freq_map.find(word)) != freq_map.end())
+						total_word_count = (*iter).second + 1;
+				else
+						total_word_count = 1; // no zero division error
+
+				tf_idf = (line_freq_map[word] / line_word_count) * std::log10(total_count / total_word_count);
 				os << vocab_map[word] << ":" << tf_idf << " ";
 		}
 		os << std::endl;
 }
 
-void tf_idf_from_vector(std::vector<std::vector<std::pair<std::string, unsigned>>> &vecs, std::vector<std::string> &files_out, const std::string vocab_out)
+void tf_idf_from_vector(std::vector<std::vector<std::pair<std::string, unsigned>>> &vecs, std::vector<std::string> &files_out, const std::string vocab_out,
+				std::vector<std::vector<std::pair<std::string, unsigned>>> &vecs_test, std::vector<std::string> &test_files_out)
 {
 		map_t freq_map, vocab_map;
 		double total_count = 0;
@@ -101,43 +111,62 @@ void tf_idf_from_vector(std::vector<std::vector<std::pair<std::string, unsigned>
 						scan_line(line_pair.first, freq_map);
 				total_count += vec.size();
 		}
-		std::cout << "frequency map generated, saving to " << vocab_out << std::endl;
-		save_vocab(vocab_out, freq_map, vocab_map);
+		std::cout << "frequency map generated, total: " << int(total_count) << " line, saving to " << vocab_out << std::endl;
+		save_vocab(vocab_out, freq_map, vocab_map, total_count);
 		std::cout << "saved, generating tf_idf file" << std::endl;
 		for (auto &vec : vecs)
 		{
 				// compute tf_idf and save to output file
 				std::ofstream os(files_out[index]);
+				os << total_count << std::endl;
 				for (auto &line_pair : vec)
 						scan_tf_idf(freq_map, line_pair.first, total_count, os, vocab_map);
 				std::cout << "saved to " << files_out[index] << std::endl; 
 				index += 1;
 		}
+		// avoid copy vector again
+		index = 0;
+		for (auto &vec : vecs_test)
+		{
+				std::ofstream os(files_out[index]);
+				os << total_count << std::endl;
+				for (auto &line_pair : vec)
+						scan_tf_idf(freq_map, line_pair.first, total_count, os, vocab_map);
+				std::cout << "saved to " << test_files_out[index] << std::endl;
+		}
 }
 
-void tf_idf_from_files(const std::vector<std::string> &files_in, const std::vector<std::string> &files_out, const std::string vocab_out, bool skip_first=false)
+void tf_idf_from_files(const std::vector<std::string> &files_in, const std::vector<std::string> &files_out, const std::string vocab_out, 
+				const std::vector<std::string> &test_files_in, const::std::vector<std::string> &test_files_out, bool skip_first=false)
 {
 		long line_num = 0;
 		std::size_t index = 0;
 		map_t freq_map, vocab_map;
+		std::vector<std::string> final_files_in = files_in, final_files_out = files_out;
+
 		std::cout << "generating frequency map" << std::endl;
 		for (const auto & filename : files_in)
 				line_num += scan_file_to_freq_map(filename, freq_map, skip_first);
-		std::cout << "frequency map generated, saving to " << vocab_out << std::endl;
-		save_vocab(vocab_out, freq_map, vocab_map);
+		std::cout << "frequency map generated, total: " << line_num << " line, saving to " << vocab_out << std::endl;
+		save_vocab(vocab_out, freq_map, vocab_map, line_num);
 		std::cout << "saved, generating tf_idf file" << std::endl;
-		for (const auto & filename : files_in)
+
+		final_files_in += test_files_in;
+		final_files_out += test_files_out;
+
+		for (const auto & filename : final_files_in)
 		{
-				std::ofstream os(files_out[index]);
+				std::ofstream os(final_files_out[index]);
 				std::ifstream in(filename);
 				std::string line;
-
+				os << line_num << std::endl;
 				while (std::getline(in, line))
 				{
 						line = skip_first ? skip_first_word(line) : line;
 						scan_tf_idf(freq_map, line, line_num, os, vocab_map);
 				}
-				std::cout << "saved to " << files_out[index] << std::endl;
+				std::cout << "saved to " << final_files_out[index] << std::endl;
 				index += 1;
 		}
 }
+

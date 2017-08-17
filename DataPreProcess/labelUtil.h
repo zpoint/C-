@@ -141,13 +141,14 @@ void write_out(std::vector<std::string> &out_files, std::map<std::string, std::v
 		if (tf_idf)
 		{
 				std::size_t index = 0;
-				std::vector<std::vector<std::pair<std::string, unsigned>>> vecs;
+				std::vector<std::vector<std::pair<std::string, unsigned>>> vecs, vecs_test;
 				vecs.push_back(std::move(vec_first));
-				vecs.push_back(std::move(vec_second));
-				std::vector<std::string> tf_out_files;
+				vecs_test.push_back(std::move(vec_second));
+				std::vector<std::string> tf_out_files, tf_test_out_files;
 
-				check_output_from_input_files(out_files, tf_out_files, "tf_idf");
-				tf_idf_from_vector(vecs, tf_out_files, vocab_out);
+				check_output_from_input_files(std::vector<std::string>{out_files[0]}, tf_out_files, "tf_idf");
+				check_output_from_input_files(std::vector<std::string>{out_files[1]}, tf_test_out_files, "tf_idf");
+				tf_idf_from_vector(vecs, tf_out_files, vocab_out, vecs_test, tf_test_out_files);
 				std::cout << "\nWrite to: \n";
 				for (const auto & filename : out_files)
 				{

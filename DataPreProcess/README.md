@@ -17,18 +17,19 @@
 
     LabelProcess v1.2
 
-    Options:
     Parameters for processing: <bool> means you can only supply 0 or 1
+    Required:
         -in <file>
             Read data from pattern <file>, Can be specific file path or pattern, Pattern example: if <file> is '/root/data/news/::.txt', search all file contains .txt in /root/data/news/
         -out <file>
             Use <file> to save the result, check the -rate parameter description
+        -rate <float>
+            This will seperate your file into two part, if rate == 0.8, The 80% of data will be stored to <OUT_FILE>_0.8.txt, 20% of data will be stored to <OUT_FILE>_0.2.txt
+    Optional: 
         -min-count <int>
             This will discard words that appear less than <int> times; default is 1
         -max-count <int>
             This will discard words that appear more than <int> times; If the value set to 0, means don't discard. default is 0
-        -rate <float>
-            This will seperate your file into two part, if rate == 0.8, The 80% of data will be stored to <OUT_FILE>_0.8.txt, 20% of data will be stored to <OUT_FILE>_0.2.txt
         -label <bool>
             whether add label(each file name) in front of each output line, 1 true, 0 false, default 1
          -word-sort <bool>
@@ -38,7 +39,8 @@
         -ingroup-sort <bool>
             whether random sort lines among a single group, default 0, if -word-sort flag set, sort by word count will be performed first, default 0
         -outgroup-sort <bool>
-            whether random sort groups among all groups in a single file, default 0, if -word-sort flag set, sort by word count first, if -ingroup_sort set, ingroup_sort will be performed before -outgroup-sort, default 0
+            whether random sort groups among all groups in a single file, default 0, if -word-sort flag set, sort by word count first
+            if -ingroup_sort set, ingroup_sort will be performed before -outgroup-sort, default 0
         -in2 <file>
              If provided, search all files in -in2
         -inN <file>
@@ -47,7 +49,9 @@
             whether compute tf_idf, and store to -out, default 0
     Examples:
     ./LabelProcess -in '/root/data/news2/news_mixed.txt' -out '/root/data/news2/news_mixed' -min-count 1 -max-count 2000 --rate 0.8
+
     Will read news_mixed.txt line by line, discard line with words less than 1 or more than 2000, save other line two two part, news_mixed_0.8.txt and news_mixed_0.2.txt
+    Notice, number in vocab.txt is how many line contains the specific word
 
 
 #### Results for LabelProcess
@@ -91,20 +95,27 @@
 
 #### TF_IDF Usage
 
-    ./tf_idf
-
     tf_idf v1.0
 
+    Required:
         -in <file>
             Read data from pattern <file>, Can be specific file path or pattern, Pattern example: if <file> is '/root/data/news/::.txt', search all file contains .txt in /root/data/news/
+    Optional:
          -skip_first <bool>
              Whether skip first word for each line, default 1
          -inN <file>
             can be -in2, in4 or ... -in10, you can supply another 10 input file or input file directory
+        -intest <file>
+            test file, test file won't be used to generate frequency map, if not provided, no test file generated
+        -intestN <file>
+            can be -intest2, -intest3 ... you can supply another 10 input file or directory to generate test output
         -out <file>
             Directory to save output, if not provide, save each result to each input file's directory
 
     Examples:
-    ./tf_idf -in '/root/data/news2/news_mixed_0.8.txt' -in2 '/root/data/news2/news_mixed_0.2.txt' -out ./
-    Will read news_mixed_0.8.txt and news_mixed_0.2.txt and compute tf_idf and store to ./news_mixed_0.8_tf_idf.txt and ./news_mixed_0.2_tf_idf.txt and ./vocab.txt
+    ./tf_idf -in '/root/data/news2/news_mixed_0.8.txt' -intest '/root/data/news2/news_mixed_0.2.txt' -out ./ 
+
+    Will read news_mixed_0.8.txt and compute tf_idf, store to ./news_mixed_0.8_tf_idf.txt and ./news_mixed_0.2_tf_idf.txt and ./vocab.txt
+    Only news_mixed_0.8.txt will be used to compute vocab.txt, news_mixed_0.2.txt will not.
+    Notice, number in vocab.txt is how many line contains the specific word
 
