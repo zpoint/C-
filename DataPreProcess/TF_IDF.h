@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <iomanip>
 #include <cmath>
 
 #include "vectorUtil.h"
@@ -81,6 +82,7 @@ void scan_tf_idf(map_t &freq_map, std::string &line, const double &total_count, 
 		std::string word, word_out_to_os;
 		std::istringstream istring(line), istring_bk(line);
 
+		os << std::fixed << std::setprecision(16);
 		while (istring >> word)
 		{
 				line_freq_map[word] += 1;
