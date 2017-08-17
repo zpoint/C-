@@ -15,7 +15,7 @@ int main(int argc, char **argv)
 						<< "\t\tRead data from pattern <file>, Can be specific file path or pattern, Pattern example: if <file> is '/root/data/news/::.txt', search all file contains .txt in /root/data/news/\n"
 						<< "Optional:\n"
 						<< "\t -skip_first <bool>\n"
-						<< "\t\t Whether skip first word for each line, default 1\n"
+						<< "\t\t Whether skip first word for each line, default 0\n"
 						<< "\t -inN <file>\n"
 						<< "\t\tcan be -in2, in4 or ... -in10, you can supply another 10 input file or input file directory\n"
 						<< "\t-intest <file>\n"
