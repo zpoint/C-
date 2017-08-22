@@ -10,6 +10,18 @@
 #include <dirent.h>
 #include <sys/stat.h>  // Unix specific header
 
+bool good_file_in(std::string &filename, bool exit_if_fail=true)
+{
+		std::ifstream is(filename);
+		if (!is.good())
+		{
+				std::cout << "Unable to open file: " << filename << std::endl;
+				if (exit_if_fail) exit(0);
+				return false;
+		}
+		return true;
+}
+
 bool good_file(std::string &filename, bool exit_if_fail=true)
 {
 		std::ofstream os(filename);

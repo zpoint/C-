@@ -24,6 +24,8 @@ int main(int argc, char **argv)
 						<< "\t\tcan be -intest2, -intest3 ... you can supply another 10 input file or directory to generate test output\n"
 						<< "\t-out <file>\n"
 						<< "\t\tDirectory to save output, if not provide, save each result to each input file's directory\n"
+						<< "\t-idf <bool>\n"
+						<< "\t\tIf idf flag is 1, will compute tf * tdf as value, else compute tf as value, default 1\n"
 						<< "\nExamples:\n"
 						<< "./tf_idf -in '/root/data/news2/news_mixed_0.8.txt' -intest '/root/data/news2/news_mixed_0.2.txt' -out ./ \n\n"
 						<< "Will read news_mixed_0.8.txt and compute tf_idf, store to ./news_mixed_0.8_tf_idf.txt and "
@@ -36,7 +38,8 @@ int main(int argc, char **argv)
 		int i;
 		std::size_t pos;
 		bool skip_first = false;
-		std::string output_dir = "", vocab_out;
+		bool idf = true;
+		std::string output_dir = "", vocab_out, suffix;
 		std::vector<std::string> input_files, output_files, test_input_files, test_output_files;
 
 		if ((i = ArgPos("-in", argc, argv)) > 0) check_input(argv[i + 1], input_files);
@@ -68,9 +71,10 @@ int main(int argc, char **argv)
 		if ((i = ArgPos("-skip_first", argc, argv, false)) > 0) skip_first = bool(atoi(argv[i + 1]));
 		if ((i = ArgPos("-out", argc, argv, false)) > 0) output_dir = argv[i + 1];
 		if ((i = ArgPos("-intest", argc, argv, false)) > 0) test_input_files.push_back(argv[i + 1]);
-		
-		check_output_from_input_files(input_files, output_files, "tf_idf");
-		check_output_from_input_files(test_input_files, test_output_files, "tf_idf");
+		if ((i = ArgPos("-idf", argc, argv, false)) > 0) idf = bool(atoi(argv[i + 1]));
+		suffix = idf ? "tf_idf" : "tf";
+		check_output_from_input_files(input_files, output_files, suffix);
+		check_output_from_input_files(test_input_files, test_output_files, suffix);
 		
 		if (output_dir != "")
 		{
@@ -107,6 +111,6 @@ int main(int argc, char **argv)
 				std::cout << "\t" << filename << "\n";
 
 		std::cout << "\nProcessing " << std::endl;
-		tf_idf_from_files(input_files, output_files, vocab_out, test_input_files, test_output_files, skip_first);
+		tf_idf_from_files(input_files, output_files, vocab_out, test_input_files, test_output_files, skip_first, idf);
 		std::cout << "Done" << std::endl;
 }

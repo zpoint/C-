@@ -102,7 +102,7 @@
             Read data from pattern <file>, Can be specific file path or pattern, Pattern example: if <file> is '/root/data/news/::.txt', search all file contains .txt in /root/data/news/
     Optional:
          -skip_first <bool>
-             Whether skip first word for each line, default 1
+             Whether skip first word for each line, default 0
          -inN <file>
             can be -in2, in4 or ... -in10, you can supply another 10 input file or input file directory
         -intest <file>
@@ -111,9 +111,11 @@
             can be -intest2, -intest3 ... you can supply another 10 input file or directory to generate test output
         -out <file>
             Directory to save output, if not provide, save each result to each input file's directory
+        -idf <bool>
+            If idf flag is 1, will compute tf * tdf as value, else compute tf as value, default 1
 
     Examples:
-    ./tf_idf -in '/root/data/news2/news_mixed_0.8.txt' -intest '/root/data/news2/news_mixed_0.2.txt' -out ./ 
+    ./tf_idf -in '/root/data/news2/news_mixed_0.8.txt' -intest '/root/data/news2/news_mixed_0.2.txt' -out ./
 
     Will read news_mixed_0.8.txt and compute tf_idf, store to ./news_mixed_0.8_tf_idf.txt and ./news_mixed_0.2_tf_idf.txt and ./vocab.txt
     Only news_mixed_0.8.txt will be used to compute vocab.txt, news_mixed_0.2.txt will not.
