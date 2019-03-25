@@ -25,7 +25,7 @@ double get_avg(const std::string line)
 double get_avg(const std::string line)
 {
 	// std::cout << line << std::endl;
-	if (line.find("min/avg/max/mdev") == std::string::npos) // fail to find correct ping result
+	if (line.find("min/avg/max") == std::string::npos) // fail to find correct ping result
 		return -1;
 	// find '='
 	std::size_t pos = line.find_first_of("=");
